@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>New Tab</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <main class="page">
+    <form class="search" id="search-form" action="https://www.google.com/search" method="GET" target="_self">
+      <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="11" cy="11" r="7" />
+        <line x1="16.5" y1="16.5" x2="21" y2="21" />
+      </svg>
+      <input
+        type="text"
+        name="q"
+        id="search-input"
+        placeholder="Search the web..."
+        autocomplete="off"
+        spellcheck="false"
+      />
+    </form>
+
+    <section class="layout">
+      <article class="panel panel-todos">
+        <header class="panel-header">
+          <h2>Tasks</h2>
+          <span class="badge" id="todo-count">0</span>
+        </header>
+
+        <form class="todo-form" id="todo-form">
+          <input
+            type="text"
+            id="todo-input"
+            placeholder="Add a task..."
+            maxlength="120"
+            autocomplete="off"
+          />
+          <button type="submit" aria-label="Add task">+</button>
+        </form>
+
+        <ul class="todo-list" id="todo-list"></ul>
+      </article>
+
+      <aside class="sidebar">
+        <article class="panel panel-info">
+          <p class="greeting" id="greeting">Good morning</p>
+          <h1 class="clock" id="clock">00:00</h1>
+          <p class="date" id="date">Sunday, January 1</p>
+
+          <div class="info-divider"></div>
+
+          <div class="weather" id="weather">
+            <div class="weather-loading">Loading weather...</div>
+          </div>
+
+          <div class="info-divider"></div>
+
+          <p class="focus-quote" id="focus-quote">Stay focused.</p>
+        </article>
+
+        <!-- <article class="panel panel-goals">
+          <header class="panel-header">
+            <h2>Daily Goals</h2>
+            <span class="badge" id="goal-count">0</span>
+          </header>
+
+          <form class="todo-form" id="goal-form">
+            <input
+              type="text"
+              id="goal-input"
+              placeholder="Add a goal..."
+              maxlength="80"
+              autocomplete="off"
+            />
+            <button type="submit" aria-label="Add goal">+</button>
+          </form>
+
+          <ul class="todo-list goal-list" id="goal-list"></ul>
+        </article> -->
+
+        <article class="panel panel-shortcuts">
+          <header class="panel-header">
+            <h2>Shortcuts</h2>
+            <button class="icon-btn" id="add-shortcut-btn" aria-label="Add shortcut">+</button>
+          </header>
+
+          <ul class="shortcuts-list" id="shortcuts-list"></ul>
+        </article>
+      </aside>
+    </section>
+  </main>
+
+  <dialog class="modal" id="shortcut-modal">
+    <form method="dialog" class="modal-form" id="shortcut-form">
+      <h3>Add shortcut</h3>
+      <label>
+        Name
+        <input type="text" id="shortcut-name" required maxlength="24" />
+      </label>
+      <label>
+        URL
+        <input type="url" id="shortcut-url" required placeholder="https://example.com" />
+      </label>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" id="cancel-shortcut">Cancel</button>
+        <button type="submit" class="btn-primary">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module" src="js/bundle.js"></script>
+</body>
+</html>

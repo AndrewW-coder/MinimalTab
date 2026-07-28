@@ -1,0 +1,14 @@
+{
+  "dependencies": {
+    "firebase": "^12.16.0"
+  },
+  "devDependencies": {
+    "dotenv": "^17.4.2",
+    "esbuild": "^0.28.1"
+  },
+  "scripts": {
+    "build": "esbuild js/app.js --bundle --format=esm --outfile=js/bundle.js",
+    "dev": "esbuild js/app.js --bundle --format=esm --outfile=js/bundle.js --watch"
+  },
+  "type": "module"
+}
