@@ -55,6 +55,30 @@ const WEATHER_ICONS = {
   default: `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><line x1="12" y1="3" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="21"/></svg>`,
 };
 
+// ---------------------------------------------------------------------------
+// Local caching: location rarely changes, so it gets a long TTL - skipping
+// geolocation/reverse-geocoding entirely on most loads. Weather gets a
+// shorter TTL since temperature actually changes. On a cache hit, data
+// renders instantly and a fresh fetch happens quietly in the background,
+// dispatching "weather-sync" if the result changed.
+// ---------------------------------------------------------------------------
+const WEATHER_CACHE_KEY = "weather-cache";
+const LOCATION_CACHE_KEY = "weather-location-cache";
+const WEATHER_MAX_AGE = 10 * 60 * 1000; // 10 minutes
+const LOCATION_MAX_AGE = 6 * 60 * 60 * 1000; // 6 hours
+
+function localGet(key) {
+  return new Promise((resolve) => {
+    chrome.storage.local.get(key, (result) => resolve(result[key]));
+  });
+}
+
+function localSet(key, value) {
+  return new Promise((resolve) => {
+    chrome.storage.local.set({ [key]: value }, () => resolve());
+  });
+}
+
 function escapeHtml(value) {
   return String(value)
     .replaceAll("&", "&amp;")
@@ -118,7 +142,7 @@ async function fetchLocationName(latitude, longitude) {
   return place.name || place.admin1 || "Your location";
 }
 
-async function resolveLocation() {
+async function resolveLocationFresh() {
   try {
     const coords = await getPosition();
     const locationName = await fetchLocationName(coords.latitude, coords.longitude);
@@ -130,6 +154,17 @@ async function resolveLocation() {
   } catch {
     return fetchCoordsFromIp();
   }
+}
+
+async function resolveLocation() {
+  const cached = await localGet(LOCATION_CACHE_KEY);
+  if (cached && Date.now() - cached.timestamp < LOCATION_MAX_AGE) {
+    return cached.value;
+  }
+
+  const value = await resolveLocationFresh();
+  await localSet(LOCATION_CACHE_KEY, { value, timestamp: Date.now() });
+  return value;
 }
 
 async function fetchWeather(latitude, longitude) {
@@ -148,12 +183,7 @@ async function fetchWeather(latitude, longitude) {
   return response.json();
 }
 
-export function getRandomFocusMessage() {
-  const index = Math.floor(Math.random() * FOCUS_QUOTES.length);
-  return FOCUS_QUOTES[index];
-}
-
-export async function loadWeather() {
+async function loadWeatherFresh() {
   const { latitude, longitude, locationName } = await resolveLocation();
   const weather = await fetchWeather(latitude, longitude);
   const current = weather.current;
@@ -169,6 +199,37 @@ export async function loadWeather() {
     high,
     low,
   };
+}
+
+function refreshWeatherInBackground() {
+  loadWeatherFresh()
+    .then((value) => {
+      localSet(WEATHER_CACHE_KEY, { value, timestamp: Date.now() });
+      document.dispatchEvent(new CustomEvent("weather-sync", { detail: value }));
+    })
+    .catch((error) => console.error("Background weather refresh failed:", error));
+}
+
+export function getRandomFocusMessage() {
+  const index = Math.floor(Math.random() * FOCUS_QUOTES.length);
+  return FOCUS_QUOTES[index];
+}
+
+export async function loadWeather() {
+  const cached = await localGet(WEATHER_CACHE_KEY);
+
+  if (cached) {
+    if (Date.now() - cached.timestamp > WEATHER_MAX_AGE) {
+      refreshWeatherInBackground();
+    }
+    return cached.value;
+  }
+
+  // Nothing cached yet on this device - has to wait on the network once.
+  // Every load after this hits the cache instead.
+  const value = await loadWeatherFresh();
+  await localSet(WEATHER_CACHE_KEY, { value, timestamp: Date.now() });
+  return value;
 }
 
 export function renderWeather(container, data) {

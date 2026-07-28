@@ -358,6 +358,13 @@ body {
   letter-spacing: 0.01em;
 }
 
+.weather {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 2.9rem;
+}
+
 .weather-loading,
 .weather-error {
   color: var(--text-muted);

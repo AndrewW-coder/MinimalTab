@@ -210,4 +210,8 @@ document.addEventListener("storage-sync", (event) => {
   }
 });
 
+document.addEventListener("weather-sync", (event) => {
+  renderWeather(weatherEl, event.detail);
+});
+
 init();
